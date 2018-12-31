@@ -1,7 +1,8 @@
-from precisely import all_of, assert_that, equal_to, has_attrs, is_instance, is_sequence
+from precisely import assert_that, equal_to, is_sequence
 import textwrap
 
 from diffdoc import rst
+from .matchers import is_diffdoc_block, is_text
 
 
 def test_parsing_rst_splits_file_into_text_and_diffdoc_blocks():
@@ -81,20 +82,6 @@ def test_code_blocks_are_serialised():
             print(3)
 
     """)))
-
-
-def is_diffdoc_block(arguments, options, content):
-    return all_of(
-        is_instance(rst.DiffdocBlock),
-        has_attrs(arguments=arguments, options=options, content=content),
-    )
-
-
-def is_text(text):
-    return all_of(
-        is_instance(rst.Text),
-        has_attrs(text=text),
-    )
 
 
 def dedent(value):
