@@ -1,4 +1,4 @@
-from precisely import all_of, assert_that, has_attrs, is_instance, is_sequence
+from precisely import all_of, assert_that, equal_to, has_attrs, is_instance, is_sequence
 import textwrap
 
 from diffdoc import rst
@@ -52,6 +52,37 @@ def test_parsing_rst_splits_file_into_text_and_diffdoc_blocks():
     ))
 
 
+def test_writing_rst_turns_elements_into_strings():
+    elements = [
+        rst.Text("Text one\n"),
+        rst.Text("\n"),
+        rst.Text("Text two\n"),
+        rst.Text("\n"),
+    ]
+
+    assert_that(rst.dumps(elements), equal_to(dedent("""
+        Text one
+
+        Text two
+
+
+    """)))
+
+
+def test_code_blocks_are_serialised():
+    code_block = rst.CodeBlock(language="python", content="print(1)\n\nprint(2)\nprint(3)\n")
+
+    assert_that(code_block.dumps(), equal_to(dedent("""
+        .. code-block:: python
+
+            print(1)
+
+            print(2)
+            print(3)
+
+    """)))
+
+
 def is_diffdoc_block(arguments, options, content):
     return all_of(
         is_instance(rst.DiffdocBlock),
@@ -67,4 +98,6 @@ def is_text(text):
 
 
 def dedent(value):
-    return textwrap.dedent(value).strip("\r\n")
+    lines = textwrap.dedent(value).splitlines(keepends=True)
+    assert lines[0].strip() == ""
+    return "".join(lines[1:-1]) + lines[-1].rstrip("\r\n")

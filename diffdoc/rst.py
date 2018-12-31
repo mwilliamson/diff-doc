@@ -1,3 +1,12 @@
+class CodeBlock(object):
+    def __init__(self, language, content):
+        self.language = language
+        self.content = content
+
+    def dumps(self):
+        return ".. code-block:: {}\n{}".format(self.language, _indent("\n" + self.content))
+
+
 class DiffdocBlock(object):
     def __init__(self, arguments, options, content):
         self.arguments = arguments
@@ -8,6 +17,13 @@ class DiffdocBlock(object):
 class Text(object):
     def __init__(self, text):
         self.text = text
+
+    def dumps(self):
+        return self.text
+
+
+def dumps(elements):
+    return "".join(element.dumps() for element in elements)
 
 
 def loads(value):
@@ -82,6 +98,13 @@ def _unindent(line):
         return line[len(indentation):]
     else:
         return line
+
+
+def _indent(value):
+    return "\n".join(
+        line.rstrip()
+        for line in value.replace("\n", "\n" + indentation).splitlines(keepends=False)
+    )
 
 
 indentation = " " * 4
