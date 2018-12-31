@@ -11,6 +11,9 @@ class LiteralBlock(object):
     def __init__(self, content):
         self.content = content
 
+    def dumps(self):
+        return "::\n{}".format(_indent("\n" + self.content))
+
 
 class DiffdocBlock(object):
     def __init__(self, arguments, options, content):

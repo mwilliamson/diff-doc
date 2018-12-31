@@ -84,6 +84,20 @@ def test_code_blocks_are_serialised():
     """)))
 
 
+def test_literal_blocks_are_serialised():
+    code_block = rst.LiteralBlock(content="print(1)\n\nprint(2)\nprint(3)\n")
+
+    assert_that(code_block.dumps(), equal_to(dedent("""
+        ::
+
+            print(1)
+
+            print(2)
+            print(3)
+
+    """)))
+
+
 def dedent(value):
     lines = textwrap.dedent(value).splitlines(keepends=True)
     assert lines[0].strip() == ""
