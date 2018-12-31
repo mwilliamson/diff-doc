@@ -10,17 +10,17 @@ test-all:
 upload: test-all
 	python setup.py sdist bdist_wheel upload
 	make clean
-	
+
 register:
 	python setup.py register
 
 clean:
 	rm -f MANIFEST
 	rm -rf dist build
-	
+
 bootstrap: .venv
 	.venv/bin/pip install -e .
-ifneq ($(wildcard test-requirements.txt),) 
+ifneq ($(wildcard test-requirements.txt),)
 	.venv/bin/pip install -r test-requirements.txt
 endif
 	make clean
