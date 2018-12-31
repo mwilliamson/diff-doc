@@ -1,3 +1,5 @@
+import subprocess
+
 from . import parser, rst
 
 
@@ -16,9 +18,27 @@ def _execute(state, element):
     if isinstance(element, parser.Text):
         return state, element
 
-    elif isinstance(element, parser.Output):
+    elif isinstance(element, parser.Diff):
+        return state, empty
         # TODO: check output
         code = state[element.name]
+
+        if element.render:
+            new_element = rst.LiteralBlock(element.content)
+        else:
+            new_element = empty
+
+        return state, new_element
+
+    elif isinstance(element, parser.Output):
+        code = state[element.name]
+        result = code.run()
+        actual_output = result.stdout.decode("utf-8")
+        if actual_output.strip() != element.content.strip():
+            raise ValueError("Documented output:\n{}\nActual output:\n{}".format(
+                element.content,
+                actual_output,
+            ))
 
         if element.render:
             new_element = rst.LiteralBlock(element.content)
@@ -74,6 +94,9 @@ class Code(object):
 
     def replace(self, content):
         return Code(language=self.language, content=content)
+
+    def run(self):
+        return subprocess.run(["python", "-c", self.content], stdout=subprocess.PIPE)
 
 
 empty = parser.Text("")

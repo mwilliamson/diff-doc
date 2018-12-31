@@ -1,4 +1,5 @@
 from precisely import assert_that, equal_to, has_attrs, is_mapping, is_sequence
+import pytest
 
 from diffdoc import compiler, parser
 from .matchers import is_code_block, is_empty_element, is_literal_block
@@ -59,6 +60,22 @@ class TestOutput(object):
 
         new_state, new_element = compiler._execute(state, element)
         assert_that(new_element, is_literal_block(content="1"))
+
+    def test_when_output_is_incorrect_then_error_is_raised(self):
+        element = parser.Output(
+            name="example",
+            content="2",
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)",
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
 
 
 class TestRender(object):
