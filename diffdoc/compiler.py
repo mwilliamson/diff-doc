@@ -20,7 +20,6 @@ def _execute(state, element):
 
     elif isinstance(element, parser.Diff):
         return state, empty
-        # TODO: check output
         code = state[element.name]
 
         if element.render:
