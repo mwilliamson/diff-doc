@@ -36,6 +36,9 @@ class Start(object):
         self.content = content
 
 
+Text = rst.Text
+
+
 def loads(source_text):
     source = rst.loads(source_text)
     return [

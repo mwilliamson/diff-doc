@@ -1,13 +1,7 @@
-from . import parser, rst
+from . import compiler, parser, rst
 
 
 def compile(source_text):
     source = parser.loads(source_text)
-
-    output = _transform_blocks(source)
-
+    output = compiler.compile(source)
     return rst.dumps(output)
-
-
-def _transform_blocks(source):
-    return source

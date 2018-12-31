@@ -3,6 +3,13 @@ from precisely import all_of, has_attrs, is_instance
 from diffdoc import parser, rst
 
 
+def is_code_block(**kwargs):
+    return all_of(
+        is_instance(rst.CodeBlock),
+        has_attrs(**kwargs),
+    )
+
+
 def is_diffdoc_block(arguments, options, content):
     return all_of(
         is_instance(rst.DiffdocBlock),
@@ -50,3 +57,6 @@ def is_text(text):
         is_instance(rst.Text),
         has_attrs(text=text),
     )
+
+
+is_empty_element = is_text("")
