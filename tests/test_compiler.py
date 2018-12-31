@@ -1,7 +1,7 @@
 from precisely import assert_that, equal_to, has_attrs, is_mapping, is_sequence
 
 from diffdoc import compiler, parser
-from .matchers import is_code_block, is_empty_element
+from .matchers import is_code_block, is_empty_element, is_literal_block
 
 
 def test_text_is_preserved_without_state_change():
@@ -9,6 +9,56 @@ def test_text_is_preserved_without_state_change():
     state = {}
 
     assert_that(compiler._execute(state, element), is_result({}, element))
+
+
+class TestOutput(object):
+    def test_output_does_not_change_state(self):
+        element = parser.Output(
+            name="example",
+            content="1",
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_state, equal_to(state))
+
+    def test_output_renders_nothing_when_render_is_false(self):
+        element = parser.Output(
+            name="example",
+            content="1",
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_element, is_empty_element)
+
+    def test_output_renders_content_when_render_is_true(self):
+        element = parser.Output(
+            name="example",
+            content="1",
+            render=True,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_element, is_literal_block(content="1"))
 
 
 class TestRender(object):

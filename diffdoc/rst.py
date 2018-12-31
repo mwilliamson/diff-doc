@@ -7,6 +7,11 @@ class CodeBlock(object):
         return ".. code-block:: {}\n{}".format(self.language, _indent("\n" + self.content))
 
 
+class LiteralBlock(object):
+    def __init__(self, content):
+        self.content = content
+
+
 class DiffdocBlock(object):
     def __init__(self, arguments, options, content):
         self.arguments = arguments

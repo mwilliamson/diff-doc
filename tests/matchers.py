@@ -24,6 +24,13 @@ def is_diff(**kwargs):
     )
 
 
+def is_literal_block(**kwargs):
+    return all_of(
+        is_instance(rst.LiteralBlock),
+        has_attrs(**kwargs),
+    )
+
+
 def is_output(**kwargs):
     return all_of(
         is_instance(parser.Output),

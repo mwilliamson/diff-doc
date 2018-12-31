@@ -16,7 +16,19 @@ def _execute(state, element):
     if isinstance(element, parser.Text):
         return state, element
 
+    elif isinstance(element, parser.Output):
+        # TODO: check output
+        code = state[element.name]
+
+        if element.render:
+            new_element = rst.LiteralBlock(element.content)
+        else:
+            new_element = empty
+
+        return state, new_element
+
     elif isinstance(element, parser.Render):
+        # TODO: check render content is consistent with content, and includes unrendered diffs
         code = state[element.name]
 
         return state, rst.CodeBlock(
