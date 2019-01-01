@@ -58,7 +58,7 @@ def _execute(state, element):
         code = state[element.name].patch(element.content)
 
         if element.render:
-            code = code.render_full()
+            code = code.render_content()
             new_element = rst.LiteralBlock(element.content)
         else:
             new_element = empty
@@ -110,7 +110,7 @@ def _execute(state, element):
         code = state[element.name].replace(element.content)
 
         if element.render:
-            code = code.render_full()
+            code = code.render_content()
             new_element = rst.CodeBlock(
                 language=code.language,
                 content=code.content,
@@ -129,7 +129,7 @@ def _execute(state, element):
         code = Code.blank(language=element.language).replace(element.content)
 
         if element.render:
-            code = code.render_full()
+            code = code.render_content()
             new_element = rst.CodeBlock(
                 language=code.language,
                 content=code.content,
@@ -201,7 +201,7 @@ class Code(object):
         ))
         return Code(language=self.language, content=self.content, pending_lines=pending_lines)
 
-    def render_full(self):
+    def render_content(self):
         return self.render(self.content)
 
     def run(self):
