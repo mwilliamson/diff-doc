@@ -79,7 +79,8 @@ def _execute(state, element, line_number):
         result = code.run()
         actual_output = result.stdout.decode("utf-8")
         if actual_output.strip() != element.content.strip():
-            raise ValueError("Documented output:\n{}\nActual output:\n{}".format(
+            raise ValueError("output on line number {} is incorrect\nDocumented output:\n{}\nActual output:\n{}".format(
+                line_number,
                 element.content,
                 actual_output,
             ))

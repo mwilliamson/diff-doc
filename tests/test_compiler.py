@@ -206,8 +206,8 @@ class TestOutput(object):
             ),
         }
 
-        error = pytest.raises(ValueError, lambda: _execute(state, element))
-        assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("output on line number 42 is incorrect\nDocumented output:\n2\nActual output:\n1\n"))
 
     def test_output_includes_stderr(self):
         element = parser.Output(
@@ -222,8 +222,8 @@ class TestOutput(object):
             ),
         }
 
-        error = pytest.raises(ValueError, lambda: _execute(state, element))
-        assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("output on line number 42 is incorrect\nDocumented output:\n2\nActual output:\n1\n"))
 
 
 class TestRender(object):
