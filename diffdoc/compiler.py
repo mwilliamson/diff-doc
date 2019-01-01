@@ -95,11 +95,6 @@ def _execute(state, element, line_number):
         # TODO: check render content is consistent with content, and includes unrendered diffs
         code = state[element.name]
 
-        new_element = rst.CodeBlock(
-            language=code.language,
-            content=code.content,
-        )
-
         new_state = {
             **state,
             element.name: code.render(element.content),
