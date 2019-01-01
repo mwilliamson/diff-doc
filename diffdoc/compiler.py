@@ -54,7 +54,15 @@ def _execute(state, element):
         return state, element
 
     elif isinstance(element, parser.Diff):
-        code = state[element.name].patch(element.content)
+        old_code = state[element.name]
+        if old_code.pending_lines:
+            pending_lines_str = "".join(
+                "\n" + pending_line
+                for pending_line in old_code.pending_lines
+            )
+            raise ValueError("cannot apply diff on line number 42, pending lines:" + pending_lines_str)
+
+        code = old_code.patch(element.content)
 
         if element.render:
             code = code.render_content()

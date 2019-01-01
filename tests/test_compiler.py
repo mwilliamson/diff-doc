@@ -14,6 +14,32 @@ def test_text_is_preserved_without_state_change():
 
 
 class TestDiff(object):
+    def test_when_there_are_pending_lines_then_diff_raises_error(self):
+        element = parser.Diff(
+            name="example",
+            content=dedent("""
+                --- old
+                +++ new
+
+                @@ -1,2 +1,2 @@
+                -x = 1
+                +x = 2
+                 print(x)
+
+            """),
+            render=False,
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="x = 1\nprint(x)\n",
+                pending_lines=("x = 1", "print(x)"),
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        assert_that(str(error.value), equal_to("cannot apply diff on line number 42, pending lines:\nx = 1\nprint(x)"))
+
     def test_diff_updates_code_using_content_as_patch(self):
         element = parser.Diff(
             name="example",
