@@ -128,6 +128,23 @@ class TestDiff(object):
 
 
 class TestOutput(object):
+    def test_when_there_are_pending_lines_then_output_raises_error(self):
+        element = parser.Output(
+            name="example",
+            content="1",
+            render=False,
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="print(1)",
+                pending_lines=("print(1)", ),
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("cannot render output on line number 42, pending lines:\nprint(1)"))
+
     def test_output_does_not_change_state(self):
         element = parser.Output(
             name="example",

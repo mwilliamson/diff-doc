@@ -55,15 +55,7 @@ def _execute(state, element, line_number):
 
     elif isinstance(element, parser.Diff):
         old_code = state[element.name]
-        if old_code.pending_lines:
-            pending_lines_str = "".join(
-                "\n" + pending_line
-                for pending_line in old_code.pending_lines
-            )
-            raise ValueError("cannot apply diff on line number {}, pending lines:{}".format(
-                line_number,
-                pending_lines_str,
-            ))
+        old_code.raise_if_pending(operation="apply diff", line_number=line_number)
 
         code = old_code.patch(element.content)
 
@@ -82,6 +74,8 @@ def _execute(state, element, line_number):
 
     elif isinstance(element, parser.Output):
         code = state[element.name]
+        code.raise_if_pending(operation="render output", line_number=line_number)
+
         result = code.run()
         actual_output = result.stdout.decode("utf-8")
         if actual_output.strip() != element.content.strip():
@@ -167,6 +161,18 @@ class Code(object):
         self.language = language
         self.content = content
         self.pending_lines = pending_lines
+
+    def raise_if_pending(self, operation, line_number):
+        if self.pending_lines:
+            pending_lines_str = "".join(
+                "\n" + pending_line
+                for pending_line in self.pending_lines
+            )
+            raise ValueError("cannot {} on line number {}, pending lines:{}".format(
+                operation,
+                line_number,
+                pending_lines_str,
+            ))
 
     def patch(self, patch):
         return self.replace(apply_patch(self.content, patch))
