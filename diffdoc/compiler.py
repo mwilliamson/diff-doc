@@ -32,14 +32,14 @@ def convert_block(source, line_number, block_type):
                     content=state[element.name].content,
                 )
             elif isinstance(element, parser.Replace) and block_type == "diff":
-                diff = difflib.unified_diff(
-                    state[element.name].content.splitlines(keepends=True),
-                    element.content.splitlines(keepends=True),
+                diff = _generate_diff(
+                    state[element.name].content,
+                    element.content,
                 )
                 element = parser.Diff(
                     name=element.name,
                     render=element.render,
-                    content="".join(diff),
+                    content=diff,
                 )
             else:
                 # TODO: raise a better exception
@@ -113,6 +113,16 @@ def _execute(state, element):
         return new_state, new_element
     else:
         raise Exception("Unhandled element: {}".format(element))
+
+
+def _generate_diff(old, new):
+    diff = tuple(difflib.unified_diff(
+        old.splitlines(keepends=True),
+        new.splitlines(keepends=True),
+    ))
+    assert diff[0].startswith("---")
+    assert diff[1].startswith("+++")
+    return "---\n+++\n" + "".join(diff[2:])
 
 
 def _render(code, element):

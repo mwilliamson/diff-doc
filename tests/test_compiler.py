@@ -3,7 +3,7 @@ import pytest
 
 from diffdoc import compiler, parser
 from .dedent import dedent
-from .matchers import is_code_block, is_empty_element, is_literal_block, is_replace, is_start
+from .matchers import is_code_block, is_diff, is_empty_element, is_literal_block, is_replace, is_start
 
 
 def test_text_is_preserved_without_state_change():
@@ -362,6 +362,53 @@ class TestConvertBlock(object):
                 content=dedent("""
                     x = 2
                     print(x)
+
+                """)
+            ),
+        ))
+
+    def test_converting_from_replace_to_diff_generates_diff_block(self):
+        start = parser.Start(
+            name="example",
+            language="python",
+            render=True,
+            content=dedent("""
+                x = 1
+                print(x)
+
+            """),
+        )
+        diff = parser.Replace(
+            name="example",
+            render=False,
+            content=dedent("""
+                x = 2
+                print(x)
+
+            """),
+        )
+
+        output = compiler.convert_block(
+            source=(
+                (1, start),
+                (2, diff),
+            ),
+            line_number=2,
+            block_type="diff",
+        )
+
+        assert_that(output, is_sequence(
+            is_start(),
+            is_diff(
+                name="example",
+                render=False,
+                content=dedent("""
+                    ---
+                    +++
+                    @@ -1,2 +1,2 @@
+                    -x = 1
+                    +x = 2
+                     print(x)
 
                 """)
             ),
