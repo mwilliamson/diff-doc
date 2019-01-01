@@ -8,7 +8,7 @@ def compile(source):
     state = {}
     result = []
 
-    for element in source:
+    for line_number, element in source:
         state, transformed_element = _execute(state, element)
         result.append(transformed_element)
 

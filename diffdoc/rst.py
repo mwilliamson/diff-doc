@@ -69,6 +69,7 @@ def loads(value):
     index = 0
 
     while index < len(lines):
+        line_number = index + 1
         line = lines[index]
         if line.startswith(block_prefix):
             arguments = tuple(filter(None, map(
@@ -100,14 +101,16 @@ def loads(value):
                 lines[block_start_index:last_block_line_index + 1],
             ))
 
-            result.append(DiffdocBlock(
+            element = DiffdocBlock(
                 arguments=arguments,
                 options=options,
                 content=content,
-            ))
+            )
         else:
-            result.append(Text(line))
+            element = Text(line)
             index += 1
+
+        result.append((line_number, element))
 
     return result
 

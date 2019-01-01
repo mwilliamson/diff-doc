@@ -42,8 +42,8 @@ Text = rst.Text
 def loads(source_text):
     source = rst.loads(source_text)
     return [
-        _read_rst_element(element)
-        for element in source
+        (line_number, _read_rst_element(element))
+        for line_number, element in source
     ]
 
 
