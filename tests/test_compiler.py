@@ -30,7 +30,7 @@ class TestDiff(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)\n",
             ),
@@ -63,13 +63,16 @@ class TestDiff(object):
             "example": compiler.Code(
                 language="python",
                 content="x = 1\nprint(x)\n",
+                pending_lines=(),
             ),
         }
 
         new_state, new_element = compiler._execute(state, element)
         assert_that(new_element, is_empty_element)
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 2")))
 
     def test_diff_with_render_true_renders_content(self):
+        # TODO: handle rendering when last_render is out of date
         content = dedent("""
             --- old
             +++ new
@@ -89,11 +92,13 @@ class TestDiff(object):
             "example": compiler.Code(
                 language="python",
                 content="x = 1\nprint(x)\n",
+                pending_lines=(),
             ),
         }
 
         new_state, new_element = compiler._execute(state, element)
         assert_that(new_element, is_literal_block(content=content))
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence()))
 
 
 class TestOutput(object):
@@ -104,7 +109,7 @@ class TestOutput(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
             ),
@@ -120,7 +125,7 @@ class TestOutput(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
             ),
@@ -136,7 +141,7 @@ class TestOutput(object):
             render=True,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
             ),
@@ -152,7 +157,7 @@ class TestOutput(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
             ),
@@ -168,7 +173,7 @@ class TestOutput(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="import sys\nx = 1\nprint(x, file=sys.stderr)",
             ),
@@ -179,20 +184,20 @@ class TestOutput(object):
 
 
 class TestRender(object):
-    def test_render_does_not_change_state(self):
+    def test_render_does_not_change_code_content(self):
         element = parser.Render(
             name="example",
             content="print(x)",
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
             ),
         }
 
         new_state, new_element = compiler._execute(state, element)
-        assert_that(new_state, equal_to(state))
+        assert_that(new_state["example"], has_attrs(content="x = 1\nprint(x)"))
 
     def test_render_renders_content(self):
         element = parser.Render(
@@ -200,9 +205,10 @@ class TestRender(object):
             content="print(x)",
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
+                pending_lines=("x = 1", "print(x)"),
             ),
         }
 
@@ -211,6 +217,7 @@ class TestRender(object):
             language="python",
             content="print(x)",
         ))
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 1")))
 
 
 class TestReplace(object):
@@ -221,7 +228,7 @@ class TestReplace(object):
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1",
             ),
@@ -238,18 +245,20 @@ class TestReplace(object):
     def test_replace_with_render_false_renders_nothing(self):
         element = parser.Replace(
             name="example",
-            content="x = 2",
+            content="x = 2\nprint(x)\n",
             render=False,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
-                content="x = 1",
+                content="x = 1\nprint(x)\n",
+                pending_lines=(),
             ),
         }
 
         new_state, new_element = compiler._execute(state, element)
         assert_that(new_element, is_empty_element)
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 2")))
 
     def test_replace_with_render_true_renders_content(self):
         element = parser.Replace(
@@ -258,9 +267,10 @@ class TestReplace(object):
             render=True,
         )
         state = {
-            "example": compiler.Code(
+            "example": _create_code(
                 language="python",
                 content="x = 1",
+                pending_lines=(),
             ),
         }
 
@@ -269,6 +279,8 @@ class TestReplace(object):
             language="python",
             content="x = 2",
         ))
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence()))
+
 
 
 class TestStart(object):
@@ -294,13 +306,14 @@ class TestStart(object):
         element = parser.Start(
             name="example",
             language="python",
-            content="x = 1",
+            content="x = 1\nprint(x)",
             render=False,
         )
         state = {}
 
         new_state, new_element = compiler._execute(state, element)
         assert_that(new_element, is_empty_element)
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 1", "print(x)")))
 
     def test_start_with_render_true_renders_content(self):
         element = parser.Start(
@@ -316,6 +329,7 @@ class TestStart(object):
             language="python",
             content="x = 1",
         ))
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence()))
 
 
 class TestConvertBlock(object):
@@ -423,4 +437,18 @@ def is_result(state, element):
     return is_sequence(
         state,
         element
+    )
+
+
+_undefined = object()
+
+
+def _create_code(*, language, content, pending_lines=_undefined):
+    if pending_lines is _undefined:
+        pending_lines = ()
+
+    return compiler.Code(
+        language=language,
+        content=content,
+        pending_lines=pending_lines,
     )

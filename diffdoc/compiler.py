@@ -56,15 +56,17 @@ def _execute(state, element):
 
     elif isinstance(element, parser.Diff):
         code = state[element.name].patch(element.content)
+
+        if element.render:
+            code = code.render_full()
+            new_element = rst.LiteralBlock(element.content)
+        else:
+            new_element = empty
+
         new_state = {
             **state,
             element.name: code,
         }
-
-        if element.render:
-            new_element = rst.LiteralBlock(element.content)
-        else:
-            new_element = empty
 
         return new_state, new_element
 
@@ -89,28 +91,59 @@ def _execute(state, element):
         # TODO: check render content is consistent with content, and includes unrendered diffs
         code = state[element.name]
 
-        return state, rst.CodeBlock(
+        new_element = rst.CodeBlock(
+            language=code.language,
+            content=code.content,
+        )
+
+        new_state = {
+            **state,
+            element.name: code.render(element.content),
+        }
+
+        return new_state, rst.CodeBlock(
             language=code.language,
             content=element.content,
         )
 
     elif isinstance(element, parser.Replace):
         code = state[element.name].replace(element.content)
+
+        if element.render:
+            code = code.render_full()
+            new_element = rst.CodeBlock(
+                language=code.language,
+                content=code.content,
+            )
+        else:
+            new_element = empty
+
         new_state = {
             **state,
             element.name: code,
         }
-        new_element = _render(code, element)
+
         return new_state, new_element
 
     elif isinstance(element, parser.Start):
-        code = Code(language=element.language, content=element.content)
+        code = Code.blank(language=element.language).replace(element.content)
+
+        if element.render:
+            code = code.render_full()
+            new_element = rst.CodeBlock(
+                language=code.language,
+                content=code.content,
+            )
+        else:
+            new_element = empty
+
         new_state = {
             **state,
             element.name: code,
         }
-        new_element = _render(code, element)
+
         return new_state, new_element
+
     else:
         raise Exception("Unhandled element: {}".format(element))
 
@@ -125,20 +158,15 @@ def _generate_diff(old, new):
     return "---\n+++\n" + "".join(diff[2:])
 
 
-def _render(code, element):
-    if element.render:
-        return rst.CodeBlock(
-            language=code.language,
-            content=code.content,
-        )
-    else:
-        return empty
-
-
 class Code(object):
-    def __init__(self, language, content):
+    @staticmethod
+    def blank(language):
+        return Code(language=language, content="", pending_lines=())
+
+    def __init__(self, language, content, pending_lines):
         self.language = language
         self.content = content
+        self.pending_lines = pending_lines
 
     def patch(self, patch):
         with tempfile.NamedTemporaryFile("w+t") as content_fileobj:
@@ -156,8 +184,25 @@ class Code(object):
 
         return self.replace(content)
 
-    def replace(self, content):
-        return Code(language=self.language, content=content)
+    def replace(self, new_content):
+        old_lines = self.content.splitlines()
+        new_lines = new_content.splitlines()
+        pending_lines = tuple(filter(
+            lambda new_line: new_line not in old_lines,
+            new_lines,
+        ))
+        return Code(language=self.language, content=new_content, pending_lines=pending_lines)
+
+    def render(self, rendered_content):
+        rendered_lines = rendered_content.splitlines()
+        pending_lines = tuple(filter(
+            lambda pending_line: pending_line not in rendered_lines,
+            self.pending_lines,
+        ))
+        return Code(language=self.language, content=self.content, pending_lines=pending_lines)
+
+    def render_full(self):
+        return self.render(self.content)
 
     def run(self):
         return subprocess.run(["python", "-c", self.content], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
