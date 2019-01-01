@@ -227,6 +227,22 @@ class TestOutput(object):
 
 
 class TestRender(object):
+    def test_when_rendered_line_is_not_in_content_then_error_is_raised(self):
+        element = parser.Render(
+            name="example",
+            content="print(x)",
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="print(1)",
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("cannot render on line number 42, line is not in content:\nprint(x)"))
+
+
     def test_render_does_not_change_code_content(self):
         element = parser.Render(
             name="example",
