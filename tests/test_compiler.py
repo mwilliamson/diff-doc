@@ -44,6 +44,57 @@ class TestDiff(object):
             ),
         }))
 
+    def test_diff_with_render_false_renders_nothing(self):
+        element = parser.Diff(
+            name="example",
+            content=dedent("""
+                --- old
+                +++ new
+
+                @@ -1,2 +1,2 @@
+                -x = 1
+                +x = 2
+                 print(x)
+
+            """),
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)\n",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_element, is_empty_element)
+
+    def test_diff_with_render_true_renders_content(self):
+        content = dedent("""
+            --- old
+            +++ new
+
+            @@ -1,2 +1,2 @@
+            -x = 1
+            +x = 2
+             print(x)
+
+        """)
+        element = parser.Diff(
+            name="example",
+            content=content,
+            render=True,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)\n",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_element, is_literal_block(content=content))
+
 
 class TestOutput(object):
     def test_output_does_not_change_state(self):

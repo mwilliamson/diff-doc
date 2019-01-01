@@ -25,7 +25,14 @@ def _execute(state, element):
             **state,
             element.name: code,
         }
-        return new_state, element
+
+
+        if element.render:
+            new_element = rst.LiteralBlock(element.content)
+        else:
+            new_element = empty
+
+        return new_state, new_element
 
     elif isinstance(element, parser.Output):
         code = state[element.name]
