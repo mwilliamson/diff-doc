@@ -10,7 +10,7 @@ def test_text_is_preserved_without_state_change():
     element = parser.Text("CONTENT")
     state = {}
 
-    assert_that(compiler._execute(state, element), is_result({}, element))
+    assert_that(_execute(state, element), is_result({}, element))
 
 
 class TestDiff(object):
@@ -37,7 +37,7 @@ class TestDiff(object):
             ),
         }
 
-        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
         assert_that(str(error.value), equal_to("cannot apply diff on line number 42, pending lines:\nx = 1\nprint(x)"))
 
     def test_diff_updates_code_using_content_as_patch(self):
@@ -62,7 +62,7 @@ class TestDiff(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_state, is_mapping({
             "example": is_code(
                 language="python",
@@ -93,7 +93,7 @@ class TestDiff(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_empty_element)
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 2")))
 
@@ -122,7 +122,7 @@ class TestDiff(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_literal_block(content=content))
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence()))
 
@@ -141,7 +141,7 @@ class TestOutput(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_state, equal_to(state))
 
     def test_output_renders_nothing_when_render_is_false(self):
@@ -157,7 +157,7 @@ class TestOutput(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_empty_element)
 
     def test_output_renders_content_when_render_is_true(self):
@@ -173,7 +173,7 @@ class TestOutput(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_literal_block(content="1"))
 
     def test_when_output_is_incorrect_then_error_is_raised(self):
@@ -189,7 +189,7 @@ class TestOutput(object):
             ),
         }
 
-        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        error = pytest.raises(ValueError, lambda: _execute(state, element))
         assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
 
     def test_output_includes_stderr(self):
@@ -205,7 +205,7 @@ class TestOutput(object):
             ),
         }
 
-        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        error = pytest.raises(ValueError, lambda: _execute(state, element))
         assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
 
 
@@ -222,7 +222,7 @@ class TestRender(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_state["example"], has_attrs(content="x = 1\nprint(x)"))
 
     def test_render_renders_content(self):
@@ -238,7 +238,7 @@ class TestRender(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_code_block(
             language="python",
             content="print(x)",
@@ -260,7 +260,7 @@ class TestReplace(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_state, is_mapping({
             "example": is_code(
                 language="python",
@@ -282,7 +282,7 @@ class TestReplace(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_empty_element)
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 2")))
 
@@ -300,7 +300,7 @@ class TestReplace(object):
             ),
         }
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_code_block(
             language="python",
             content="x = 2",
@@ -320,7 +320,7 @@ class TestStart(object):
         )
         state = {}
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_state, is_mapping({
             "example": is_code(
                 language="python",
@@ -337,7 +337,7 @@ class TestStart(object):
         )
         state = {}
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_empty_element)
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 1", "print(x)")))
 
@@ -350,7 +350,7 @@ class TestStart(object):
         )
         state = {}
 
-        new_state, new_element = compiler._execute(state, element)
+        new_state, new_element = _execute(state, element)
         assert_that(new_element, is_code_block(
             language="python",
             content="x = 1",
@@ -478,3 +478,10 @@ def _create_code(*, language, content, pending_lines=_undefined):
         content=content,
         pending_lines=pending_lines,
     )
+
+
+def _execute(state, element, line_number=_undefined):
+    if line_number is _undefined:
+        line_number = 1
+
+    return compiler._execute(state, element, line_number=line_number)

@@ -9,7 +9,7 @@ def compile(source):
     result = []
 
     for line_number, element in source:
-        state, transformed_element = _execute(state, element)
+        state, transformed_element = _execute(state, element, line_number=line_number)
         result.append(transformed_element)
 
     return tuple(result)
@@ -21,10 +21,10 @@ def convert_block(source, line_number, block_type):
 
     for element_line_number, element in source:
         if element_line_number < line_number:
-            state, transformed_element = _execute(state, element)
+            state, transformed_element = _execute(state, element, line_number=element_line_number)
         elif element_line_number == line_number:
             if isinstance(element, parser.Diff) and block_type == "replace":
-                state, transformed_element = _execute(state, element)
+                state, transformed_element = _execute(state, element, line_number=element_line_number)
                 element = parser.Replace(
                     name=element.name,
                     render=element.render,
@@ -49,7 +49,7 @@ def convert_block(source, line_number, block_type):
 
     return tuple(result)
 
-def _execute(state, element):
+def _execute(state, element, line_number):
     if isinstance(element, parser.Text):
         return state, element
 
@@ -60,7 +60,10 @@ def _execute(state, element):
                 "\n" + pending_line
                 for pending_line in old_code.pending_lines
             )
-            raise ValueError("cannot apply diff on line number 42, pending lines:" + pending_lines_str)
+            raise ValueError("cannot apply diff on line number {}, pending lines:{}".format(
+                line_number,
+                pending_lines_str,
+            ))
 
         code = old_code.patch(element.content)
 
