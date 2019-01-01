@@ -55,6 +55,9 @@ class Text(object):
     def dumps(self):
         return self.text
 
+    def to_rst(self):
+        return self
+
 
 def dumps(elements):
     return "".join(element.dumps() for element in elements)

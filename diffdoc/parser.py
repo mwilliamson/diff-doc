@@ -7,6 +7,13 @@ class Diff(object):
         self.render = render
         self.content = content
 
+    def to_rst(self):
+        return rst.DiffdocBlock(
+            arguments=("diff", self.name),
+            options={"render": str(self.render)},
+            content=self.content,
+        )
+
 
 class Output(object):
     def __init__(self, name, render, content):
@@ -14,11 +21,25 @@ class Output(object):
         self.render = render
         self.content = content
 
+    def to_rst(self):
+        return rst.DiffdocBlock(
+            arguments=("output", self.name),
+            options={"render": str(self.render)},
+            content=self.content,
+        )
+
 
 class Render(object):
     def __init__(self, name, content):
         self.name = name
         self.content = content
+
+    def to_rst(self):
+        return rst.DiffdocBlock(
+            arguments=("render", self.name),
+            options={},
+            content=self.content,
+        )
 
 
 class Replace(object):
@@ -27,6 +48,13 @@ class Replace(object):
         self.render = render
         self.content = content
 
+    def to_rst(self):
+        return rst.DiffdocBlock(
+            arguments=("replace", self.name),
+            options={"render": str(self.render)},
+            content=self.content,
+        )
+
 
 class Start(object):
     def __init__(self, name, language, render, content):
@@ -34,6 +62,13 @@ class Start(object):
         self.language = language
         self.render = render
         self.content = content
+
+    def to_rst(self):
+        return rst.DiffdocBlock(
+            arguments=("start", self.name),
+            options={"language": self.language, "render": str(self.render)},
+            content=self.content,
+        )
 
 
 Text = rst.Text

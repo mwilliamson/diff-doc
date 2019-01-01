@@ -15,6 +15,30 @@ def compile(source):
     return tuple(result)
 
 
+def convert_block(source, line_number, block_type):
+    state = {}
+    result = []
+
+    for element_line_number, element in source:
+        if element_line_number < line_number:
+            state, transformed_element = _execute(state, element)
+        elif element_line_number == line_number:
+            if isinstance(element, parser.Diff) and block_type == "replace":
+                state, transformed_element = _execute(state, element)
+                element = parser.Replace(
+                    name=element.name,
+                    render=element.render,
+                    content=state[element.name].content,
+                )
+            else:
+                # TODO: raise a better exception
+                raise Exception("cannot convert from {} to {}".format(type(element), block_type))
+
+        # TODO: raise error if element not found
+        result.append(element)
+
+    return tuple(result)
+
 def _execute(state, element):
     if isinstance(element, parser.Text):
         return state, element
