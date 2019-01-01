@@ -40,6 +40,32 @@ class TestDiff(object):
         error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
         assert_that(str(error.value), equal_to("cannot apply diff on line number 42, pending lines:\nx = 1\nprint(x)"))
 
+    def test_invalid_diff_raises_error(self):
+        element = parser.Diff(
+            name="example",
+            content=dedent("""
+                --- old
+                +++ new
+
+                @@ -1,2 +1,2 @@
+                -x = 3
+                +x = 2
+                 print(x)
+
+            """),
+            render=False,
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="x = 1\nprint(x)\n",
+                pending_lines=(),
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("cannot apply diff on line number 42, invalid patch"))
+
     def test_diff_updates_code_using_content_as_patch(self):
         element = parser.Diff(
             name="example",

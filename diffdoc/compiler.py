@@ -57,7 +57,10 @@ def _execute(state, element, line_number):
         old_code = state[element.name]
         old_code.raise_if_pending(operation="apply diff", line_number=line_number)
 
-        code = old_code.patch(element.content)
+        try:
+            code = old_code.patch(element.content)
+        except:
+            raise ValueError("cannot apply diff on line number 42, invalid patch")
 
         if element.render:
             code = code.render_content()
