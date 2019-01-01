@@ -1,8 +1,7 @@
-import difflib
 import subprocess
-import tempfile
 
 from . import parser, rst
+from .diff import apply_patch, generate_diff
 
 
 def compile(source):
@@ -32,7 +31,7 @@ def convert_block(source, line_number, block_type):
                     content=state[element.name].content,
                 )
             elif isinstance(element, parser.Replace) and block_type == "diff":
-                diff = _generate_diff(
+                diff = generate_diff(
                     state[element.name].content,
                     element.content,
                 )
@@ -148,16 +147,6 @@ def _execute(state, element):
         raise Exception("Unhandled element: {}".format(element))
 
 
-def _generate_diff(old, new):
-    diff = tuple(difflib.unified_diff(
-        old.splitlines(keepends=True),
-        new.splitlines(keepends=True),
-    ))
-    assert diff[0].startswith("---")
-    assert diff[1].startswith("+++")
-    return "---\n+++\n" + "".join(diff[2:])
-
-
 class Code(object):
     @staticmethod
     def blank(language):
@@ -169,20 +158,7 @@ class Code(object):
         self.pending_lines = pending_lines
 
     def patch(self, patch):
-        with tempfile.NamedTemporaryFile("w+t") as content_fileobj:
-            content_fileobj.write(self.content)
-            content_fileobj.flush()
-
-            with tempfile.NamedTemporaryFile("w+t") as patch_fileobj:
-                patch_fileobj.write(patch)
-                patch_fileobj.flush()
-
-                subprocess.run(["patch", content_fileobj.name, patch_fileobj.name, "--quiet"], check=True)
-
-            with open(content_fileobj.name, "rt") as new_content_fileobj:
-                content = new_content_fileobj.read()
-
-        return self.replace(content)
+        return self.replace(apply_patch(self.content, patch))
 
     def replace(self, new_content):
         old_lines = self.content.splitlines()
