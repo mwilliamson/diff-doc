@@ -115,7 +115,7 @@ class Code(object):
         return Code(language=self.language, content=content)
 
     def run(self):
-        return subprocess.run(["python", "-c", self.content], stdout=subprocess.PIPE)
+        return subprocess.run(["python", "-c", self.content], stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
 
 empty = parser.Text("")

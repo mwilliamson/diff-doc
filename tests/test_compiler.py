@@ -161,6 +161,22 @@ class TestOutput(object):
         error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
         assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
 
+    def test_output_includes_stderr(self):
+        element = parser.Output(
+            name="example",
+            content="2",
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="import sys\nx = 1\nprint(x, file=sys.stderr)",
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: compiler._execute(state, element))
+        assert_that(str(error.value), equal_to("Documented output:\n2\nActual output:\n1\n"))
+
 
 class TestRender(object):
     def test_render_does_not_change_state(self):
