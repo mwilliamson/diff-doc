@@ -4,7 +4,12 @@ class CodeBlock(object):
         self.content = content
 
     def dumps(self):
-        return ".. code-block:: {}\n{}".format(self.language, _indent("\n" + self.content))
+        return _dumps_directive(
+            name="code-block",
+            arguments=(self.language, ),
+            options={},
+            content=self.content,
+        )
 
 
 class LiteralBlock(object):
@@ -22,15 +27,25 @@ class DiffdocBlock(object):
         self.content = content
 
     def dumps(self):
-        options = "".join(
-            _indent("\n:{}: {}".format(option_name, option_value))
-            for option_name, option_value in self.options.items()
+        return _dumps_directive(
+            name="diff-doc",
+            arguments=self.arguments,
+            options=self.options,
+            content=self.content,
         )
-        if self.content:
-            content = _indent("\n" + self.content)
-        else:
-            content = ""
-        return ".. diff-doc:: {}{}\n{}".format(" ".join(self.arguments), options, content)
+
+
+def _dumps_directive(name, arguments, options, content):
+    arguments_str = " ".join(arguments)
+    options_str = "".join(
+        _indent("\n:{}: {}".format(option_name, option_value))
+        for option_name, option_value in sorted(options.items())
+    )
+    if content:
+        content_str = _indent("\n" + content)
+    else:
+        content_str = ""
+    return ".. {}:: {}{}\n{}".format(name, arguments_str, options_str, content_str)
 
 
 class Text(object):
