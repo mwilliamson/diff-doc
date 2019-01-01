@@ -242,24 +242,6 @@ class TestRender(object):
         error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
         assert_that(str(error.value), equal_to("cannot render on line number 42, line is not in content:\nprint(x)"))
 
-    def test_indentation_of_rendered_lines_can_differ_from_content(self):
-        element = parser.Render(
-            name="example",
-            content="  print(x)",
-        )
-        state = {
-            "example": _create_code(
-                language="python",
-                content="    x = 1\n    print(x)",
-            ),
-        }
-
-        new_state, new_element = _execute(state, element)
-        assert_that(new_element, is_code_block(
-            language="python",
-            content="  print(x)",
-        ))
-
     def test_render_does_not_change_code_content(self):
         element = parser.Render(
             name="example",
@@ -308,6 +290,22 @@ class TestRender(object):
 
         new_state, new_element = _execute(state, element)
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 1")))
+
+    def test_indentation_of_rendered_lines_can_differ_from_content(self):
+        element = parser.Render(
+            name="example",
+            content="  print(x)",
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="    x = 1\n    print(x)",
+                pending_lines=("    x = 1", "    print(x)"),
+            ),
+        }
+
+        new_state, new_element = _execute(state, element)
+        assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("    x = 1")))
 
 
 class TestReplace(object):

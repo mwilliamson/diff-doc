@@ -194,12 +194,16 @@ class Code(object):
         return Code(language=self.language, content=new_content, pending_lines=pending_lines)
 
     def render(self, rendered_content):
-        rendered_lines = rendered_content.splitlines()
-        pending_lines = tuple(filter(
-            lambda pending_line: pending_line not in rendered_lines,
+        # TODO: remove duplication with logic in Render handling
+        rendered_lines = frozenset(
+            rendered_line.lstrip()
+            for rendered_line in rendered_content.splitlines()
+        )
+        new_pending_lines = tuple(filter(
+            lambda pending_line: pending_line.lstrip() not in rendered_lines,
             self.pending_lines,
         ))
-        return Code(language=self.language, content=self.content, pending_lines=pending_lines)
+        return Code(language=self.language, content=self.content, pending_lines=new_pending_lines)
 
     def render_content(self):
         return self.render(self.content)
