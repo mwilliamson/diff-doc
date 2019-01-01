@@ -60,7 +60,7 @@ def _execute(state, element, line_number):
         try:
             code = old_code.patch(element.content)
         except:
-            raise ValueError("cannot apply diff on line number 42, invalid patch")
+            raise ValueError("cannot apply diff on line number {}, invalid patch".format(line_number))
 
         if element.render:
             code = code.render_content()
