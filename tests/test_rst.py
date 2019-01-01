@@ -1,7 +1,7 @@
 from precisely import assert_that, equal_to, is_sequence
-import textwrap
 
 from diffdoc import rst
+from .dedent import dedent
 from .matchers import is_diffdoc_block, is_text
 
 
@@ -96,9 +96,3 @@ def test_literal_blocks_are_serialised():
             print(3)
 
     """)))
-
-
-def dedent(value):
-    lines = textwrap.dedent(value).splitlines(keepends=True)
-    assert lines[0].strip() == ""
-    return "".join(lines[1:-1]) + lines[-1].rstrip("\r\n")

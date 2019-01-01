@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 
 from . import parser, rst
 
@@ -19,15 +20,12 @@ def _execute(state, element):
         return state, element
 
     elif isinstance(element, parser.Diff):
-        return state, empty
-        code = state[element.name]
-
-        if element.render:
-            new_element = rst.LiteralBlock(element.content)
-        else:
-            new_element = empty
-
-        return state, new_element
+        code = state[element.name].patch(element.content)
+        new_state = {
+            **state,
+            element.name: code,
+        }
+        return new_state, element
 
     elif isinstance(element, parser.Output):
         code = state[element.name]
@@ -90,6 +88,22 @@ class Code(object):
     def __init__(self, language, content):
         self.language = language
         self.content = content
+
+    def patch(self, patch):
+        with tempfile.NamedTemporaryFile("w+t") as content_fileobj:
+            content_fileobj.write(self.content)
+            content_fileobj.flush()
+
+            with tempfile.NamedTemporaryFile("w+t") as patch_fileobj:
+                patch_fileobj.write(patch)
+                patch_fileobj.flush()
+
+                subprocess.run(["patch", content_fileobj.name, patch_fileobj.name], check=True)
+
+            with open(content_fileobj.name, "rt") as new_content_fileobj:
+                content = new_content_fileobj.read()
+
+        return self.replace(content)
 
     def replace(self, content):
         return Code(language=self.language, content=content)

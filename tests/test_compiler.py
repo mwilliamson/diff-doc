@@ -2,6 +2,7 @@ from precisely import assert_that, equal_to, has_attrs, is_mapping, is_sequence
 import pytest
 
 from diffdoc import compiler, parser
+from .dedent import dedent
 from .matchers import is_code_block, is_empty_element, is_literal_block
 
 
@@ -10,6 +11,38 @@ def test_text_is_preserved_without_state_change():
     state = {}
 
     assert_that(compiler._execute(state, element), is_result({}, element))
+
+
+class TestDiff(object):
+    def test_diff_updates_code_using_content_as_patch(self):
+        element = parser.Diff(
+            name="example",
+            content=dedent("""
+                --- old
+                +++ new
+
+                @@ -1,2 +1,2 @@
+                -x = 1
+                +x = 2
+                 print(x)
+
+            """),
+            render=False,
+        )
+        state = {
+            "example": compiler.Code(
+                language="python",
+                content="x = 1\nprint(x)\n",
+            ),
+        }
+
+        new_state, new_element = compiler._execute(state, element)
+        assert_that(new_state, is_mapping({
+            "example": is_code(
+                language="python",
+                content="x = 2\nprint(x)\n",
+            ),
+        }))
 
 
 class TestOutput(object):
