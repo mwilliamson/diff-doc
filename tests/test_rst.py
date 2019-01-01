@@ -152,6 +152,47 @@ def test_code_blocks_are_serialised():
     """)))
 
 
+def test_diffdoc_block_without_options_nor_content_is_serialised():
+    code_block = rst.DiffdocBlock(arguments=("start", "example"), options={}, content="")
+
+    assert_that(code_block.dumps(), equal_to(dedent("""
+        .. diff-doc:: start example
+
+    """)))
+
+
+def test_diffdoc_block_with_options_and_no_content_is_serialised():
+    code_block = rst.DiffdocBlock(
+        arguments=("start", "example"),
+        options={"language": "python", "render": "True"},
+        content="",
+    )
+
+    assert_that(code_block.dumps(), equal_to(dedent("""
+        .. diff-doc:: start example
+            :language: python
+            :render: True
+
+    """)))
+
+
+def test_diffdoc_block_with_content_is_serialised():
+    code_block = rst.DiffdocBlock(
+        arguments=("start", "example"),
+        options={},
+        content="Example 1\n\nExample 2\n",
+    )
+
+    assert_that(code_block.dumps(), equal_to(dedent("""
+        .. diff-doc:: start example
+
+            Example 1
+
+            Example 2
+
+    """)))
+
+
 def test_literal_blocks_are_serialised():
     code_block = rst.LiteralBlock(content="print(1)\n\nprint(2)\nprint(3)\n")
 

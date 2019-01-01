@@ -21,6 +21,17 @@ class DiffdocBlock(object):
         self.options = options
         self.content = content
 
+    def dumps(self):
+        options = "".join(
+            _indent("\n:{}: {}".format(option_name, option_value))
+            for option_name, option_value in self.options.items()
+        )
+        if self.content:
+            content = _indent("\n" + self.content)
+        else:
+            content = ""
+        return ".. diff-doc:: {}{}\n{}".format(" ".join(self.arguments), options, content)
+
 
 class Text(object):
     def __init__(self, text):
