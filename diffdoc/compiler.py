@@ -26,7 +26,6 @@ def _execute(state, element):
             element.name: code,
         }
 
-
         if element.render:
             new_element = rst.LiteralBlock(element.content)
         else:
