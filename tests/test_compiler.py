@@ -251,7 +251,6 @@ class TestRender(object):
             "example": _create_code(
                 language="python",
                 content="x = 1\nprint(x)",
-                pending_lines=("x = 1", "print(x)"),
             ),
         }
 
@@ -260,6 +259,21 @@ class TestRender(object):
             language="python",
             content="print(x)",
         ))
+
+    def test_render_removes_rendered_lines_from_pending_lines(self):
+        element = parser.Render(
+            name="example",
+            content="print(x)",
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="x = 1\nprint(x)",
+                pending_lines=("x = 1", "print(x)"),
+            ),
+        }
+
+        new_state, new_element = _execute(state, element)
         assert_that(new_state["example"], has_attrs(pending_lines=is_sequence("x = 1")))
 
 
