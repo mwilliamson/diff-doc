@@ -264,6 +264,23 @@ class TestRender(object):
 
 
 class TestReplace(object):
+    def test_when_there_are_pending_lines_then_replace_raises_error(self):
+        element = parser.Replace(
+            name="example",
+            content="x = 2",
+            render=False,
+        )
+        state = {
+            "example": _create_code(
+                language="python",
+                content="x = 1",
+                pending_lines=("x = 1", ),
+            ),
+        }
+
+        error = pytest.raises(ValueError, lambda: _execute(state, element, line_number=42))
+        assert_that(str(error.value), equal_to("cannot replace on line number 42, pending lines:\nx = 1"))
+
     def test_replace_replaces_content_for_code(self):
         element = parser.Replace(
             name="example",

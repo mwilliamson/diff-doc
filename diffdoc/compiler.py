@@ -111,7 +111,10 @@ def _execute(state, element, line_number):
         )
 
     elif isinstance(element, parser.Replace):
-        code = state[element.name].replace(element.content)
+        old_code = state[element.name]
+        old_code.raise_if_pending(operation="replace", line_number=line_number)
+
+        code = old_code.replace(element.content)
 
         if element.render:
             code = code.render_content()
