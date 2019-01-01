@@ -5,6 +5,36 @@ from .dedent import dedent
 from .matchers import is_diffdoc_block, is_text
 
 
+def test_can_parse_single_diffdoc_block_with_content():
+    content = rst.loads(dedent("""
+        .. diff-doc:: start example
+
+            Example 1
+    """))
+
+    assert_that(content, is_sequence(
+        is_diffdoc_block(
+            arguments=is_sequence("start", "example"),
+            options={},
+            content="Example 1",
+        ),
+    ))
+
+
+def test_can_parse_single_diffdoc_block_without_content():
+    content = rst.loads(dedent("""
+        .. diff-doc:: start example
+    """))
+
+    assert_that(content, is_sequence(
+        is_diffdoc_block(
+            arguments=is_sequence("start", "example"),
+            options={},
+            content="",
+        ),
+    ))
+
+
 def test_parsing_rst_splits_file_into_text_and_diffdoc_blocks():
     content = rst.loads(dedent("""
         Text one

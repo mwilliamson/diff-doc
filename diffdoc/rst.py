@@ -52,21 +52,21 @@ def loads(value):
             index += 1
 
             options = {}
-            while _is_indented_line(lines[index]) and not _is_blank_line(lines[index]):
+            while index < len(lines) and _is_indented_line(lines[index]) and not _is_blank_line(lines[index]):
                 key, value = _read_option(_unindent(lines[index]))
                 assert key not in options
                 options[key] = value
                 index += 1
 
-            while _is_blank_line(lines[index]):
+            while index < len(lines) and _is_blank_line(lines[index]):
                 index += 1
 
             block_start_index = index
             last_block_line_index = index
-            while _is_blank_line(lines[index]) or _is_indented_line(lines[index]):
-                index += 1
+            while index < len(lines) and (_is_blank_line(lines[index]) or _is_indented_line(lines[index])):
                 if _is_indented_line(lines[index]):
                     last_block_line_index = index
+                index += 1
 
             index = last_block_line_index + 1
             content = "".join(map(
