@@ -95,10 +95,10 @@ def _execute(state, element, line_number):
     elif isinstance(element, parser.Render):
         code = state[element.name]
 
-        content_lines = code.content.splitlines()
+        content_lines = frozenset(line.lstrip() for line in code.content.splitlines())
         rendered_lines = element.content.splitlines()
         for rendered_line in rendered_lines:
-            if rendered_line not in content_lines:
+            if rendered_line.lstrip() not in content_lines:
                 raise ValueError("cannot render on line number {}, line is not in content:\n{}".format(
                     line_number,
                     rendered_line,
