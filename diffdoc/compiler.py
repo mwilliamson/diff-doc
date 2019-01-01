@@ -92,7 +92,6 @@ def _execute(state, element, line_number):
         return state, new_element
 
     elif isinstance(element, parser.Render):
-        # TODO: check render content is consistent with content, and includes unrendered diffs
         code = state[element.name]
 
         content_lines = code.content.splitlines()
