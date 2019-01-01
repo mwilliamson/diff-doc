@@ -58,11 +58,11 @@ def loads(value):
                 options[key] = value
                 index += 1
 
+            last_block_line_index = index - 1
             while index < len(lines) and _is_blank_line(lines[index]):
                 index += 1
 
             block_start_index = index
-            last_block_line_index = index
             while index < len(lines) and (_is_blank_line(lines[index]) or _is_indented_line(lines[index])):
                 if _is_indented_line(lines[index]):
                     last_block_line_index = index

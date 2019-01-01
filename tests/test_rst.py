@@ -35,6 +35,44 @@ def test_can_parse_single_diffdoc_block_without_content():
     ))
 
 
+def test_can_parse_diffdoc_block_without_options_and_content_followed_by_text():
+    content = rst.loads(dedent("""
+        .. diff-doc:: start example
+
+        Text
+    """))
+
+    assert_that(content, is_sequence(
+        is_diffdoc_block(
+            arguments=is_sequence("start", "example"),
+            options={},
+            content="",
+        ),
+        is_text("\n"),
+        is_text("Text"),
+    ))
+
+
+def test_can_parse_diffdoc_block_with_options_and_without_content_followed_by_text():
+    content = rst.loads(dedent("""
+        .. diff-doc:: start example
+            :language: python
+            :render: True
+
+        Text
+    """))
+
+    assert_that(content, is_sequence(
+        is_diffdoc_block(
+            arguments=is_sequence("start", "example"),
+            options={"language": "python", "render": "True"},
+            content="",
+        ),
+        is_text("\n"),
+        is_text("Text"),
+    ))
+
+
 def test_parsing_rst_splits_file_into_text_and_diffdoc_blocks():
     content = rst.loads(dedent("""
         Text one
