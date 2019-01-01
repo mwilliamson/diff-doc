@@ -128,7 +128,7 @@ class Code(object):
                 patch_fileobj.write(patch)
                 patch_fileobj.flush()
 
-                subprocess.run(["patch", content_fileobj.name, patch_fileobj.name], check=True)
+                subprocess.run(["patch", content_fileobj.name, patch_fileobj.name, "--quiet"], check=True)
 
             with open(content_fileobj.name, "rt") as new_content_fileobj:
                 content = new_content_fileobj.read()
