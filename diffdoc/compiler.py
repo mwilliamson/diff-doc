@@ -1,3 +1,4 @@
+import difflib
 import subprocess
 import tempfile
 
@@ -29,6 +30,16 @@ def convert_block(source, line_number, block_type):
                     name=element.name,
                     render=element.render,
                     content=state[element.name].content,
+                )
+            elif isinstance(element, parser.Replace) and block_type == "diff":
+                diff = difflib.unified_diff(
+                    state[element.name].content.splitlines(keepends=True),
+                    element.content.splitlines(keepends=True),
+                )
+                element = parser.Diff(
+                    name=element.name,
+                    render=element.render,
+                    content="".join(diff),
                 )
             else:
                 # TODO: raise a better exception
